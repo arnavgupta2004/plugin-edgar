@@ -1,10 +1,10 @@
 {
-  "name": "plugin-template",
+  "name": "plugin-edgar",
   "build": {
     "context": ".",
     "dockerfile": "Dockerfile"
   },
-  "workspaceFolder": "/workspaces/plugin-template",
+  "workspaceFolder": "/workspaces/plugin-edgar",
   "forwardPorts": [8080],
   "customizations": {
     "vscode": {
