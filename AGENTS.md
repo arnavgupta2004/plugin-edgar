@@ -3,7 +3,7 @@
 ## What
 
 - Provides plugin components under `io.kestra.plugin.edgar`, for SEC EDGAR (the public database of US company filings).
-- Includes classes such as `company.Lookup`, `AbstractEdgarTask`, `EdgarClient`.
+- Includes classes such as `company.Lookup`, `filings.List`, `AbstractEdgarTask`, `EdgarClient`.
 
 ## Why
 
@@ -19,12 +19,14 @@ Single-module plugin. Source packages under `io.kestra.plugin`:
 
 - `edgar`: the shared base task (`AbstractEdgarTask`), the per-run HTTP client (`EdgarClient`) and the ticker resolver (`CompanyTickers`). No tasks live in the root package.
 - `edgar.company`: company tasks.
+- `edgar.filings`: filing tasks; `Submissions` reads SEC's columnar submissions API and its older pages.
 
 The plugin calls SEC's public APIs only; tests use WireMock with fixtures in `src/test/resources/fixtures`, so they need no network.
 
 ### Key Plugin Classes
 
 - `io.kestra.plugin.edgar.company.Lookup`
+- `io.kestra.plugin.edgar.filings.List`
 
 ### Project Structure
 

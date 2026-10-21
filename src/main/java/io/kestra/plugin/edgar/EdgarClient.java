@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import io.kestra.core.http.HttpRequest;
@@ -22,6 +23,7 @@ import io.kestra.core.serializers.JacksonMapper;
  */
 public final class EdgarClient implements AutoCloseable {
     public static final String DEFAULT_BASE_URL = "https://www.sec.gov";
+    public static final String DEFAULT_DATA_BASE_URL = "https://data.sec.gov";
     public static final int DEFAULT_MAX_REQUESTS_PER_SECOND = 5;
     static final int MAX_REQUESTS_PER_SECOND = 10;
 
@@ -87,14 +89,25 @@ public final class EdgarClient implements AutoCloseable {
     }
 
     public <T> T getJson(URI uri, Class<T> type) throws IOException, InterruptedException {
-        var body = get(uri);
+        return parse(uri, get(uri, false), type);
+    }
+
+    /**
+     * Same as {@link #getJson(URI, Class)}, but empty when SEC answers 404, so the caller can say what wasn't found.
+     */
+    public <T> Optional<T> findJson(URI uri, Class<T> type) throws IOException, InterruptedException {
+        var body = get(uri, true);
+        return body == null ? Optional.empty() : Optional.of(parse(uri, body, type));
+    }
+
+    private static <T> T parse(URI uri, String body, Class<T> type) throws IOException {
         if (body == null || body.isBlank()) {
             throw new IllegalStateException("SEC EDGAR returned an empty response for %s.".formatted(uri));
         }
         return JacksonMapper.ofJson().readValue(body, type);
     }
 
-    private String get(URI uri) throws InterruptedException {
+    private String get(URI uri, boolean notFoundAsNull) throws InterruptedException {
         waitForRateLimit();
         runContext.logger().debug("GET {}", uri);
 
@@ -108,7 +121,11 @@ public final class EdgarClient implements AutoCloseable {
         try {
             return httpClient.request(request, String.class).getBody();
         } catch (HttpClientResponseException e) {
-            throw new IllegalStateException(errorMessage(uri, e.getResponse() != null ? e.getResponse().getStatus().getCode() : -1), e);
+            var status = e.getResponse() != null ? e.getResponse().getStatus().getCode() : -1;
+            if (status == 404 && notFoundAsNull) {
+                return null;
+            }
+            throw new IllegalStateException(errorMessage(uri, status), e);
         } catch (HttpClientException e) {
             throw new IllegalStateException("Could not reach SEC EDGAR at %s: %s".formatted(uri.getHost(), e.getMessage()), e);
         } catch (Exception e) {

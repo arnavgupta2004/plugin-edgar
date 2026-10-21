@@ -15,3 +15,7 @@ SEC's [fair access rules](https://www.sec.gov/search-filings/edgar-search-assist
 ### company.Lookup
 
 Resolves stock tickers to the company's CIK (SEC's Central Index Key, the identifier the other EDGAR tasks use), name and exchange, from SEC's company ticker file. Tickers are matched case-insensitively, and `BRK.B` also matches EDGAR's `BRK-B`. The task fails, naming them, if SEC lists no company for one or more tickers. `fetchType` controls the output: `FETCH` (default) returns `rows`, `FETCH_ONE` the first company in `row`, `STORE` an ION file in internal storage.
+
+### filings.List
+
+Lists one company's filings, newest first, given its `ticker` or its `cik`, optionally filtered by `forms` (exact form types such as `8-K` or `10-K/A`) and by an inclusive `startDate` / `endDate` on the filing date. SEC returns the most recent filings (at least a year, or 1,000) in one response and older ones in additional pages; the task reads an older page only when `startDate` reaches it or when it still needs results, and stops at `maxResults` (default 100, at most 10,000). Each filing has its accession number, form, filing and report dates, acceptance time, 8-K item numbers and the URL of its primary document. `fetchType` works as for `company.Lookup`; use `STORE` for long histories.

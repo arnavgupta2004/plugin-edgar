@@ -61,6 +61,14 @@ public abstract class AbstractEdgarTask extends Task {
     @PluginProperty(group = "advanced")
     protected Property<String> baseUrl = Property.ofValue(EdgarClient.DEFAULT_BASE_URL);
 
+    @Schema(
+        title = "Base URL of SEC's data API",
+        description = "Where filing lists and XBRL data are read from. Change it only to go through a proxy or a test server."
+    )
+    @Builder.Default
+    @PluginProperty(group = "advanced")
+    protected Property<String> dataBaseUrl = Property.ofValue(EdgarClient.DEFAULT_DATA_BASE_URL);
+
     protected EdgarClient client(RunContext runContext) throws IllegalVariableEvaluationException {
         var rUserAgent = runContext.render(this.userAgent).as(String.class).orElse(null);
         var rMaxRequestsPerSecond = runContext.render(this.maxRequestsPerSecond).as(Integer.class).orElse(EdgarClient.DEFAULT_MAX_REQUESTS_PER_SECOND);
@@ -69,6 +77,10 @@ public abstract class AbstractEdgarTask extends Task {
 
     protected URI baseUri(RunContext runContext) throws IllegalVariableEvaluationException {
         return EdgarClient.baseUri(runContext.render(this.baseUrl).as(String.class).orElse(EdgarClient.DEFAULT_BASE_URL), "baseUrl");
+    }
+
+    protected URI dataBaseUri(RunContext runContext) throws IllegalVariableEvaluationException {
+        return EdgarClient.baseUri(runContext.render(this.dataBaseUrl).as(String.class).orElse(EdgarClient.DEFAULT_DATA_BASE_URL), "dataBaseUrl");
     }
 
     protected static URI store(RunContext runContext, List<?> rows) throws Exception {

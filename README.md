@@ -48,6 +48,7 @@
 - Provides plugin components under `io.kestra.plugin.edgar`.
 - Tasks:
   - `company.Lookup` resolves tickers to the company's CIK, name and exchange.
+  - `filings.List` lists a company's filings, filtered by form type and filing date.
 - Shared behaviour: a required `userAgent` (name and contact email, as SEC requires), requests spaced to stay under `maxRequestsPerSecond` (default 5, at most 10), and retries on HTTP 429 and 503.
 
 ## SEC requirements
