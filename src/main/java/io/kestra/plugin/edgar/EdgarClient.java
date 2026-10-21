@@ -1,6 +1,10 @@
 package io.kestra.plugin.edgar;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
@@ -100,6 +104,41 @@ public final class EdgarClient implements AutoCloseable {
         return body == null ? Optional.empty() : Optional.of(parse(uri, body, type));
     }
 
+    /**
+     * Returns the body of a text document such as a filing index, or empty when SEC answers 404.
+     */
+    public Optional<String> findText(URI uri) throws InterruptedException {
+        return Optional.ofNullable(get(uri, true));
+    }
+
+    /**
+     * Streams a document to {@code target} without holding it in memory.
+     */
+    public void download(URI uri, Path target) throws InterruptedException {
+        waitForRateLimit();
+        runContext.logger().debug("GET {}", uri);
+        try {
+            httpClient.request(request(uri, "*/*"), response -> {
+                try (var body = response.getBody()) {
+                    if (body == null) {
+                        throw new IllegalStateException("SEC EDGAR returned an empty response for %s.".formatted(uri));
+                    }
+                    Files.copy(body, target, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        } catch (HttpClientResponseException e) {
+            throw new IllegalStateException(errorMessage(uri, e.getResponse() != null ? e.getResponse().getStatus().getCode() : -1), e);
+        } catch (HttpClientException e) {
+            throw new IllegalStateException("Could not reach SEC EDGAR at %s: %s".formatted(uri.getHost(), e.getMessage()), e);
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException("Download from SEC EDGAR failed for %s: %s".formatted(uri, e.getMessage()), e);
+        }
+    }
+
     private static <T> T parse(URI uri, String body, Class<T> type) throws IOException {
         if (body == null || body.isBlank()) {
             throw new IllegalStateException("SEC EDGAR returned an empty response for %s.".formatted(uri));
@@ -111,15 +150,8 @@ public final class EdgarClient implements AutoCloseable {
         waitForRateLimit();
         runContext.logger().debug("GET {}", uri);
 
-        var request = HttpRequest.builder()
-            .uri(uri)
-            .method("GET")
-            .addHeader("User-Agent", userAgent)
-            .addHeader("Accept", "application/json")
-            .build();
-
         try {
-            return httpClient.request(request, String.class).getBody();
+            return httpClient.request(request(uri, "application/json, text/html;q=0.9, */*;q=0.8"), String.class).getBody();
         } catch (HttpClientResponseException e) {
             var status = e.getResponse() != null ? e.getResponse().getStatus().getCode() : -1;
             if (status == 404 && notFoundAsNull) {
@@ -131,6 +163,15 @@ public final class EdgarClient implements AutoCloseable {
         } catch (Exception e) {
             throw new IllegalStateException("Request to SEC EDGAR failed for %s: %s".formatted(uri, e.getMessage()), e);
         }
+    }
+
+    private HttpRequest request(URI uri, String accept) {
+        return HttpRequest.builder()
+            .uri(uri)
+            .method("GET")
+            .addHeader("User-Agent", userAgent)
+            .addHeader("Accept", accept)
+            .build();
     }
 
     private void waitForRateLimit() throws InterruptedException {
