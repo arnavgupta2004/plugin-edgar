@@ -86,7 +86,9 @@ public class Lookup extends AbstractEdgarTask implements RunnableTask<Lookup.Out
 
     @Schema(
         title = "How to return the companies",
-        description = "`FETCH` (default) returns them in `rows`, `FETCH_ONE` returns the first in `row`, `STORE` writes them to an ION file in internal storage and returns its `uri`, `NONE` returns only `size`."
+        description = """
+            `FETCH` (default) returns them in `rows`, `FETCH_ONE` returns the first in `row`, `STORE` writes them to an \
+            ION file in internal storage and returns its `uri`, `NONE` returns only `size`."""
     )
     @Builder.Default
     @PluginProperty(group = "processing")

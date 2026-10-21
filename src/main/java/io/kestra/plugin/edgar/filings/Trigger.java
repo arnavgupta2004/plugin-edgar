@@ -126,17 +126,21 @@ public class Trigger extends AbstractTrigger implements PollingTriggerInterface,
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
     };
 
-    @Schema(title = "Tickers of the companies to watch", description = "For example `INTC`. Set `tickers`, `ciks` or both.")
+    @Schema(title = "Tickers of the companies to watch", description = """
+        For example `INTC`. Set `tickers`, `ciks` or both.""")
     @PluginProperty(group = "main")
     private Property<List<String>> tickers;
 
-    @Schema(title = "CIKs of the companies to watch", description = "With or without leading zeros, for example `320193`. Set `tickers`, `ciks` or both.")
+    @Schema(title = "CIKs of the companies to watch", description = """
+        With or without leading zeros, for example `320193`. Set `tickers`, `ciks` or both.""")
     @PluginProperty(group = "main")
     private Property<List<String>> ciks;
 
     @Schema(
         title = "Form types to watch",
-        description = "For example `8-K` or `10-K`, matched exactly and case-insensitively; amendments have their own form type, such as `10-K/A`. All forms when empty."
+        description = """
+            For example `8-K` or `10-K`, matched exactly and case-insensitively; amendments have their own form type, such \
+            as `10-K/A`. All forms when empty."""
     )
     @PluginProperty(group = "processing")
     private Property<List<String>> forms;
@@ -148,7 +152,9 @@ public class Trigger extends AbstractTrigger implements PollingTriggerInterface,
 
     @Schema(
         title = "How far back the first poll fires",
-        description = "For example `P7D`. Used only on the first poll, when no state is saved yet; by default the first poll fires nothing."
+        description = """
+            For example `P7D`. Used only on the first poll, when no state is saved yet; by default the first poll fires \
+            nothing."""
     )
     @PluginProperty(group = "processing")
     private Property<Duration> lookback;
@@ -229,6 +235,9 @@ public class Trigger extends AbstractTrigger implements PollingTriggerInterface,
                     rTickers.stream().filter(ticker -> !found.containsKey(ticker))
                         .forEach(ticker -> logger.warn("SEC lists no company with the ticker {}; it is not watched. Check the symbol.", ticker));
                     found.forEach((ticker, company) -> companies.putIfAbsent(company.getCik(), ticker));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw e;
                 } catch (Exception e) {
                     logger.warn("SEC's ticker file could not be read, so the companies given by `tickers` are checked on the next poll: {}", e.getMessage());
                 }
@@ -241,6 +250,9 @@ public class Trigger extends AbstractTrigger implements PollingTriggerInterface,
                     var result = FilingWatermark.evaluate(readState(kv, key), recent, Instant.now(), rLookback);
                     writeState(kv, key, result.state());
                     newFilings.addAll(result.newFilings());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw e;
                 } catch (Exception e) {
                     logger.warn("The filings of {} could not be read and will be checked on the next poll: {}", company.getValue(), e.getMessage());
                 }
@@ -296,7 +308,8 @@ public class Trigger extends AbstractTrigger implements PollingTriggerInterface,
     @Builder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "New filings, oldest first", description = "In the same shape as `filings.List` rows. Use `{{ trigger.filings }}`.")
+        @Schema(title = "New filings, oldest first", description = """
+            In the same shape as `filings.List` rows. Use `{{ trigger.filings }}`.""")
         private final List<Filing> filings;
 
         @Schema(title = "Number of new filings")

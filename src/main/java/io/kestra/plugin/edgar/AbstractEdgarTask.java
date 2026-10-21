@@ -55,7 +55,9 @@ public abstract class AbstractEdgarTask extends Task {
 
     @Schema(
         title = "Base URL of the SEC website",
-        description = "Where company tickers and filing documents are read from. Change it only to go through a proxy or a test server."
+        description = """
+            Where company tickers and filing documents are read from. Change it only to go through a proxy or a test \
+            server."""
     )
     @Builder.Default
     @PluginProperty(group = "advanced")
@@ -63,7 +65,8 @@ public abstract class AbstractEdgarTask extends Task {
 
     @Schema(
         title = "Base URL of SEC's data API",
-        description = "Where filing lists and XBRL data are read from. Change it only to go through a proxy or a test server."
+        description = """
+            Where filing lists and XBRL data are read from. Change it only to go through a proxy or a test server."""
     )
     @Builder.Default
     @PluginProperty(group = "advanced")

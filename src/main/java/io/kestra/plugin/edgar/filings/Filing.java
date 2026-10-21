@@ -15,7 +15,8 @@ public class Filing {
     @Schema(title = "CIK of the filer", description = "The 10-digit zero-padded CIK.")
     String cik;
 
-    @Schema(title = "Accession number", description = "SEC's identifier of the filing, for example `0000050863-26-000155`.")
+    @Schema(title = "Accession number", description = """
+        SEC's identifier of the filing, for example `0000050863-26-000155`.""")
     String accessionNumber;
 
     @Schema(title = "Form type", description = "For example `8-K`, `10-Q` or `10-K/A`.")
@@ -30,7 +31,8 @@ public class Filing {
     @Schema(title = "Time SEC accepted the filing")
     Instant acceptedAt;
 
-    @Schema(title = "Item numbers", description = "For an 8-K, the items it reports, for example `2.02` (results of operations); empty for most other forms.")
+    @Schema(title = "Item numbers", description = """
+        For an 8-K, the items it reports, for example `2.02` (results of operations); empty for most other forms.""")
     List<String> items;
 
     @Schema(title = "File name of the primary document")

@@ -76,12 +76,14 @@ public class Download extends AbstractEdgarTask implements RunnableTask<Download
     private static final Pattern CIK = Pattern.compile("\\d{1,10}");
     private static final Pattern ACCESSION_NUMBER = Pattern.compile("\\d{10}-\\d{2}-\\d{6}");
 
-    @Schema(title = "CIK of the filer", description = "With or without leading zeros, for example `50863`; `filings.List` returns it in each filing's `cik`.")
+    @Schema(title = "CIK of the filer", description = """
+        With or without leading zeros, for example `50863`; `filings.List` returns it in each filing's `cik`.""")
     @NotNull
     @PluginProperty(group = "main")
     private Property<String> cik;
 
-    @Schema(title = "Accession number of the filing", description = "For example `0000050863-26-000155`; `filings.List` returns it in each filing's `accessionNumber`.")
+    @Schema(title = "Accession number of the filing", description = """
+        For example `0000050863-26-000155`; `filings.List` returns it in each filing's `accessionNumber`.""")
     @NotNull
     @PluginProperty(group = "main")
     private Property<String> accessionNumber;
@@ -125,7 +127,7 @@ public class Download extends AbstractEdgarTask implements RunnableTask<Download
             }
 
             var primary = entries.stream().filter(entry -> entry.sequence() == 1).findFirst().orElse(entries.getFirst());
-            var output = Output.builder().form(primary.type()).primaryDocument(download(runContext, client, folder, primary));
+            var output = Output.builder().primaryDocument(download(runContext, client, folder, primary));
 
             var exhibitDocuments = new ArrayList<Document>();
             if (!rExhibits.isEmpty()) {
@@ -161,13 +163,12 @@ public class Download extends AbstractEdgarTask implements RunnableTask<Download
     @Builder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "Form type of the filing", description = "The type of its primary document, for example `8-K`.")
-        private final String form;
-
-        @Schema(title = "The primary document")
+        @Schema(title = "The primary document", description = """
+            Its `type` is the filing's form type, for example `8-K`.""")
         private final Document primaryDocument;
 
-        @Schema(title = "The exhibits whose type matched `exhibits`", description = "In the order of the filing index; empty when none matched.")
+        @Schema(title = "The exhibits whose type matched `exhibits`", description = """
+            In the order of the filing index; empty when none matched.""")
         private final List<Document> exhibits;
     }
 }

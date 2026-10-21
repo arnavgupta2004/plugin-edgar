@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -83,7 +82,7 @@ final class Submissions {
         if (columns.accessionNumber() == null || columns.form() == null || columns.filingDate() == null) {
             throw new IllegalStateException("SEC's submissions for CIK %s have an unexpected format: a filing column is missing.".formatted(cik));
         }
-        for (int i = 0; i < columns.accessionNumber().size() && collected.size() < query.maxResults(); i++) {
+        for (var i = 0; i < columns.accessionNumber().size() && collected.size() < query.maxResults(); i++) {
             var form = columns.form().get(i);
             var filingDate = LocalDate.parse(columns.filingDate().get(i));
             if (!query.matches(form, filingDate)) {
@@ -113,7 +112,7 @@ final class Submissions {
         if (items == null) {
             return List.of();
         }
-        return Arrays.stream(items.split(",")).map(String::trim).filter(item -> !item.isEmpty()).collect(Collectors.toList());
+        return Arrays.stream(items.split(",")).map(String::trim).filter(item -> !item.isEmpty()).toList();
     }
 
     private static String value(List<String> column, int index) {

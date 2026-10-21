@@ -1,7 +1,7 @@
 @PluginSubGroup(
     title = "SEC EDGAR Company",
     description = "Tasks that look up companies on SEC EDGAR.",
-    categories = PluginSubGroup.PluginCategory.DATA
+    categories = { PluginSubGroup.PluginCategory.BUSINESS, PluginSubGroup.PluginCategory.DATA }
 )
 package io.kestra.plugin.edgar.company;
 

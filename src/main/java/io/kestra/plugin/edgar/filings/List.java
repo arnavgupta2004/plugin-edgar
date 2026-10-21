@@ -89,13 +89,16 @@ public class List extends AbstractEdgarTask implements RunnableTask<List.Output>
     @PluginProperty(group = "main")
     private Property<String> ticker;
 
-    @Schema(title = "CIK of the company", description = "With or without leading zeros, for example `50863` or `0000050863`. Set either `ticker` or `cik`.")
+    @Schema(title = "CIK of the company", description = """
+        With or without leading zeros, for example `50863` or `0000050863`. Set either `ticker` or `cik`.""")
     @PluginProperty(group = "main")
     private Property<String> cik;
 
     @Schema(
         title = "Form types to keep",
-        description = "For example `8-K` or `10-K`, matched exactly and case-insensitively; amendments have their own form type, such as `10-K/A`. All forms when empty."
+        description = """
+            For example `8-K` or `10-K`, matched exactly and case-insensitively; amendments have their own form type, such \
+            as `10-K/A`. All forms when empty."""
     )
     @PluginProperty(group = "processing")
     private Property<java.util.List<String>> forms;
@@ -118,7 +121,9 @@ public class List extends AbstractEdgarTask implements RunnableTask<List.Output>
 
     @Schema(
         title = "How to return the filings",
-        description = "`FETCH` (default) returns them in `rows`, `FETCH_ONE` returns the newest in `row`, `STORE` writes them to an ION file in internal storage and returns its `uri`, `NONE` returns only `size`."
+        description = """
+            `FETCH` (default) returns them in `rows`, `FETCH_ONE` returns the newest in `row`, `STORE` writes them to an \
+            ION file in internal storage and returns its `uri`, `NONE` returns only `size`."""
     )
     @Builder.Default
     @PluginProperty(group = "processing")
@@ -166,7 +171,8 @@ public class List extends AbstractEdgarTask implements RunnableTask<List.Output>
     @Builder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The newest matching filing", description = "Set when `fetchType` is `FETCH_ONE`; empty when nothing matches.")
+        @Schema(title = "The newest matching filing", description = """
+            Set when `fetchType` is `FETCH_ONE`; empty when nothing matches.""")
         private final Filing row;
 
         @Schema(title = "The matching filings, newest first", description = "Set when `fetchType` is `FETCH`.")

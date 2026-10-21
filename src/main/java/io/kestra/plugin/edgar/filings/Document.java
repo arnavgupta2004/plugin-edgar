@@ -9,7 +9,8 @@ import lombok.Value;
 @Value
 @Builder
 public class Document {
-    @Schema(title = "Document type declared by the filer", description = "For example `8-K` for the primary document or `EX-99.1` for an exhibit.")
+    @Schema(title = "Document type declared by the filer", description = """
+        For example `8-K` for the primary document or `EX-99.1` for an exhibit.""")
     String type;
 
     @Schema(title = "File name in the filing")

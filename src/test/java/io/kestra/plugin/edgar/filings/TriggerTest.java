@@ -167,6 +167,21 @@ class TriggerTest extends EdgarTestBase {
     }
 
     @Test
+    void shouldStopThePollWhenInterruptedInsteadOfMovingToTheNextCompany() throws Exception {
+        publish(INTEL, filing("0000050863-26-000001", "8-K", now.minus(Duration.ofHours(1))));
+        publish(APPLE, filing("0000320193-26-000001", "8-K", now.minus(Duration.ofHours(1))));
+        // one request per second, so reading the second company waits, and that wait sees the interrupt
+        var poll = poll(builder().ciks(Property.ofValue(List.of("50863", "320193"))).maxRequestsPerSecond(Property.ofValue(1)).build());
+
+        Thread.currentThread().interrupt();
+        try {
+            assertThrows(InterruptedException.class, poll::run);
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test
     void shouldKeepTheStatesOfDifferentTriggersApart() {
         var one = TriggerContext.builder().namespace("company.team").flowId("a_b").triggerId("c").build();
         var other = TriggerContext.builder().namespace("company.team").flowId("a").triggerId("b_c").build();

@@ -22,7 +22,8 @@ public class Fact {
     @Schema(title = "Value", description = "As reported, without rounding.")
     BigDecimal value;
 
-    @Schema(title = "Start of the period", description = "Empty for values at a point in time, such as shares outstanding.")
+    @Schema(title = "Start of the period", description = """
+        Empty for values at a point in time, such as shares outstanding.""")
     LocalDate start;
 
     @Schema(title = "End of the period, or the date of a point-in-time value")
@@ -31,7 +32,8 @@ public class Fact {
     @Schema(title = "Fiscal year of the filing that reported the value")
     Integer fiscalYear;
 
-    @Schema(title = "Fiscal period of the filing that reported the value", description = "`FY`, `Q1`, `Q2`, `Q3` or `Q4`.")
+    @Schema(title = "Fiscal period of the filing that reported the value", description = """
+        `FY`, `Q1`, `Q2`, `Q3` or `Q4`.""")
     String fiscalPeriod;
 
     @Schema(title = "Form of the filing that reported the value", description = "For example `10-K` or `10-Q`.")
@@ -45,7 +47,9 @@ public class Fact {
 
     @Schema(
         title = "Calendar frame",
-        description = "Set by SEC on the one value it keeps per concept, unit and calendar period, for example `CY2026Q2`; empty for values also reported elsewhere."
+        description = """
+            Set by SEC on the one value it keeps per concept, unit and calendar period, for example `CY2026Q2`; empty for \
+            values also reported elsewhere."""
     )
     String frame;
 }

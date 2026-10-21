@@ -53,7 +53,7 @@ class DownloadTest extends EdgarTestBase {
 
         var output = task("50863", "0000050863-26-000155", List.of("EX-99.1")).run(runContext);
 
-        assertThat(output.getForm(), is("8-K"));
+        assertThat(output.getPrimaryDocument().getType(), is("8-K"));
         assertThat(output.getPrimaryDocument().getFileName(), is("intc-20260723.htm"));
         assertThat(read(runContext, output.getPrimaryDocument().getUri()), is("<html>Intel 8-K</html>"));
         assertThat(output.getExhibits().size(), is(1));

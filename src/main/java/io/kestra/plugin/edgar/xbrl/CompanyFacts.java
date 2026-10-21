@@ -104,7 +104,8 @@ public class CompanyFacts extends AbstractEdgarTask implements RunnableTask<Comp
     @PluginProperty(group = "main")
     private Property<String> ticker;
 
-    @Schema(title = "CIK of the company", description = "With or without leading zeros, for example `320193`. Set either `ticker` or `cik`.")
+    @Schema(title = "CIK of the company", description = """
+        With or without leading zeros, for example `320193`. Set either `ticker` or `cik`.""")
     @PluginProperty(group = "main")
     private Property<String> cik;
 
@@ -112,7 +113,8 @@ public class CompanyFacts extends AbstractEdgarTask implements RunnableTask<Comp
     @PluginProperty(group = "processing")
     private Property<List<String>> taxonomies;
 
-    @Schema(title = "Concepts to keep", description = "Exact names, case-insensitive, for example `Revenues` or `NetIncomeLoss`. All when empty.")
+    @Schema(title = "Concepts to keep", description = """
+        Exact names, case-insensitive, for example `Revenues` or `NetIncomeLoss`. All when empty.""")
     @PluginProperty(group = "processing")
     private Property<List<String>> concepts;
 
@@ -120,7 +122,8 @@ public class CompanyFacts extends AbstractEdgarTask implements RunnableTask<Comp
     @PluginProperty(group = "processing")
     private Property<List<String>> units;
 
-    @Schema(title = "Forms to keep", description = "Form of the filing that reported the value, for example `10-K` or `10-Q`. All when empty.")
+    @Schema(title = "Forms to keep", description = """
+        Form of the filing that reported the value, for example `10-K` or `10-Q`. All when empty.""")
     @PluginProperty(group = "processing")
     private Property<List<String>> forms;
 
@@ -237,7 +240,8 @@ public class CompanyFacts extends AbstractEdgarTask implements RunnableTask<Comp
         @Schema(title = "The values", description = "Set when `fetchType` is `FETCH`.")
         private final List<Fact> rows;
 
-        @Schema(title = "The first value", description = "Set when `fetchType` is `FETCH_ONE`; empty when nothing matches.")
+        @Schema(title = "The first value", description = """
+            Set when `fetchType` is `FETCH_ONE`; empty when nothing matches.""")
         private final Fact row;
 
         @Schema(title = "Number of values returned", description = "For `FETCH_ONE`, 0 or 1.")

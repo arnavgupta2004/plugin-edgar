@@ -50,30 +50,23 @@ final class FactsReader {
         void accept(Fact fact) throws IOException;
     }
 
-    record Entity(String cik, String name) {
-    }
-
     /**
-     * Calls {@code sink} with every fact that passes {@code filter}, and returns the company the file is about.
+     * Calls {@code sink} with every fact that passes {@code filter}.
      */
-    static Entity read(Path file, Filter filter, Sink sink) throws IOException {
+    static void read(Path file, Filter filter, Sink sink) throws IOException {
         var mapper = JacksonMapper.ofJson();
-        String cik = null;
-        String name = null;
         try (var parser = mapper.createParser(file.toFile())) {
             expect(parser.nextToken(), JsonToken.START_OBJECT);
             while (parser.nextToken() == JsonToken.FIELD_NAME) {
                 var field = parser.currentName();
                 parser.nextToken();
-                switch (field) {
-                    case "cik" -> cik = parser.getValueAsString();
-                    case "entityName" -> name = parser.getValueAsString();
-                    case "facts" -> readTaxonomies(parser, filter, sink);
-                    default -> parser.skipChildren();
+                if ("facts".equals(field)) {
+                    readTaxonomies(parser, filter, sink);
+                } else {
+                    parser.skipChildren();
                 }
             }
         }
-        return new Entity(cik, name);
     }
 
     private static void readTaxonomies(JsonParser parser, Filter filter, Sink sink) throws IOException {
