@@ -115,6 +115,17 @@ public final class EdgarClient implements AutoCloseable {
      * Streams a document to {@code target} without holding it in memory.
      */
     public void download(URI uri, Path target) throws InterruptedException {
+        download(uri, target, false);
+    }
+
+    /**
+     * Same as {@link #download(URI, Path)}, but returns {@code false} when SEC answers 404, so the caller can say what wasn't found.
+     */
+    public boolean downloadIfExists(URI uri, Path target) throws InterruptedException {
+        return download(uri, target, true);
+    }
+
+    private boolean download(URI uri, Path target, boolean notFoundAsFalse) throws InterruptedException {
         waitForRateLimit();
         runContext.logger().debug("GET {}", uri);
         try {
@@ -128,8 +139,13 @@ public final class EdgarClient implements AutoCloseable {
                     throw new UncheckedIOException(e);
                 }
             });
+            return true;
         } catch (HttpClientResponseException e) {
-            throw new IllegalStateException(errorMessage(uri, e.getResponse() != null ? e.getResponse().getStatus().getCode() : -1), e);
+            var status = e.getResponse() != null ? e.getResponse().getStatus().getCode() : -1;
+            if (status == 404 && notFoundAsFalse) {
+                return false;
+            }
+            throw new IllegalStateException(errorMessage(uri, status), e);
         } catch (HttpClientException e) {
             throw new IllegalStateException("Could not reach SEC EDGAR at %s: %s".formatted(uri.getHost(), e.getMessage()), e);
         } catch (IllegalStateException e) {

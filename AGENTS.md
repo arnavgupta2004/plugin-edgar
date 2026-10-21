@@ -3,7 +3,7 @@
 ## What
 
 - Provides plugin components under `io.kestra.plugin.edgar`, for SEC EDGAR (the public database of US company filings).
-- Includes classes such as `company.Lookup`, `filings.List`, `filings.Download`, `AbstractEdgarTask`, `EdgarClient`.
+- Includes classes such as `company.Lookup`, `filings.List`, `filings.Download`, `xbrl.CompanyFacts`, `AbstractEdgarTask`, `EdgarClient`.
 
 ## Why
 
@@ -20,6 +20,7 @@ Single-module plugin. Source packages under `io.kestra.plugin`:
 - `edgar`: the shared base task (`AbstractEdgarTask`), the per-run HTTP client (`EdgarClient`) and the ticker resolver (`CompanyTickers`). No tasks live in the root package.
 - `edgar.company`: company tasks.
 - `edgar.filings`: filing tasks; `Submissions` reads SEC's columnar submissions API and its older pages, `FilingIndex` reads a filing's `-index-headers.html` for each document's declared type.
+- `edgar.xbrl`: XBRL tasks; `FactsReader` streams SEC's company facts JSON token by token.
 
 The plugin calls SEC's public APIs only; tests use WireMock with fixtures in `src/test/resources/fixtures`, so they need no network.
 
@@ -28,6 +29,7 @@ The plugin calls SEC's public APIs only; tests use WireMock with fixtures in `sr
 - `io.kestra.plugin.edgar.company.Lookup`
 - `io.kestra.plugin.edgar.filings.List`
 - `io.kestra.plugin.edgar.filings.Download`
+- `io.kestra.plugin.edgar.xbrl.CompanyFacts`
 
 ### Project Structure
 
@@ -44,6 +46,7 @@ plugin-edgar/
 - Base the wording on the implemented packages and classes, not on template README text.
 - Keep tasks stateless: create `EdgarClient` inside `run()` and close it there; the rate limit is per run.
 - Select exhibits by the type declared in the filing index, never by file name.
+- Never load a whole SEC response that can be large (company facts) into memory: stream it to disk and parse it incrementally.
 - Never put a real contact in code, tests or fixtures; use a placeholder User-Agent such as `Example Co admin@example.com`.
 
 ## References

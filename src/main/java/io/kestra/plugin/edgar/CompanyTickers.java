@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 public final class CompanyTickers {
     static final String PATH = "/files/company_tickers_exchange.json";
+    private static final Pattern CIK = Pattern.compile("\\d{1,10}");
 
     private CompanyTickers() {
     }
@@ -46,6 +48,26 @@ public final class CompanyTickers {
             );
         }
         return companies;
+    }
+
+    /**
+     * Returns the 10-digit CIK of the company given by exactly one of {@code ticker} or {@code cik}.
+     *
+     * @throws IllegalArgumentException when both or neither are set, or the CIK isn't a number
+     */
+    public static String resolveCik(EdgarClient client, URI baseUri, String ticker, String cik) throws Exception {
+        var rTicker = ticker == null || ticker.isBlank() ? null : ticker.trim();
+        var rCik = cik == null || cik.isBlank() ? null : cik.trim();
+        if ((rTicker == null) == (rCik == null)) {
+            throw new IllegalArgumentException("Set exactly one of `ticker` or `cik` to say which company to read.");
+        }
+        if (rCik != null) {
+            if (!CIK.matcher(rCik).matches()) {
+                throw new IllegalArgumentException("`cik` must be a number of up to 10 digits, for example `50863` or `0000050863`, but was `%s`.".formatted(rCik));
+            }
+            return "%010d".formatted(Long.parseLong(rCik));
+        }
+        return resolve(client, baseUri, List.of(rTicker)).getFirst().getCik();
     }
 
     private static Map<String, Company> index(TickerFile file) {

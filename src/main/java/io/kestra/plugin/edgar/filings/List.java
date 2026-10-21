@@ -3,7 +3,6 @@ package io.kestra.plugin.edgar.filings;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.Locale;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import io.kestra.core.models.annotations.Example;
@@ -86,8 +85,6 @@ import lombok.experimental.SuperBuilder;
     }
 )
 public class List extends AbstractEdgarTask implements RunnableTask<List.Output> {
-    private static final Pattern CIK = Pattern.compile("\\d{1,10}");
-
     @Schema(title = "Ticker of the company", description = "For example `INTC`. Set either `ticker` or `cik`.")
     @PluginProperty(group = "main")
     private Property<String> ticker;
@@ -129,14 +126,8 @@ public class List extends AbstractEdgarTask implements RunnableTask<List.Output>
 
     @Override
     public Output run(RunContext runContext) throws Exception {
-        var rTicker = runContext.render(this.ticker).as(String.class).filter(value -> !value.isBlank()).orElse(null);
-        var rCik = runContext.render(this.cik).as(String.class).filter(value -> !value.isBlank()).map(String::trim).orElse(null);
-        if ((rTicker == null) == (rCik == null)) {
-            throw new IllegalArgumentException("Set exactly one of `ticker` or `cik` to say which company's filings to list.");
-        }
-        if (rCik != null && !CIK.matcher(rCik).matches()) {
-            throw new IllegalArgumentException("`cik` must be a number of up to 10 digits, for example `50863` or `0000050863`, but was `%s`.".formatted(rCik));
-        }
+        var rTicker = runContext.render(this.ticker).as(String.class).orElse(null);
+        var rCik = runContext.render(this.cik).as(String.class).orElse(null);
         var rForms = runContext.render(this.forms).asList(String.class).stream()
             .filter(form -> form != null && !form.isBlank())
             .map(form -> form.trim().toUpperCase(Locale.ROOT))
@@ -155,9 +146,7 @@ public class List extends AbstractEdgarTask implements RunnableTask<List.Output>
         java.util.List<Filing> filings;
         try (var client = client(runContext)) {
             var baseUri = baseUri(runContext);
-            var companyCik = rCik != null
-                ? "%010d".formatted(Long.parseLong(rCik))
-                : CompanyTickers.resolve(client, baseUri, java.util.List.of(rTicker)).getFirst().getCik();
+            var companyCik = CompanyTickers.resolveCik(client, baseUri, rTicker, rCik);
             filings = Submissions.list(runContext, client, dataBaseUri(runContext), baseUri, companyCik,
                 new Submissions.Query(rForms, rStartDate, rEndDate, rMaxResults));
         }

@@ -23,3 +23,11 @@ Lists one company's filings, newest first, given its `ticker` or its `cik`, opti
 ### filings.Download
 
 Downloads a filing's primary document and, optionally, its exhibits to internal storage, given the filer's `cik` and the filing's `accessionNumber` (both returned by `filings.List`). Exhibits are selected by the **document type the filer declared** in the filing index, such as `EX-99.1` for a press release, never by file name: exhibit file names follow no convention, and Intel's Q2 2026 earnings release, for example, is `q226earningsrelease.htm`. `exhibits` takes types, case-insensitively, where `*` matches any characters: `EX-99*` matches `EX-99.1` and `EX-99.2`. For material contracts use `EX-10.*`, since `EX-10*` also matches the XBRL files (`EX-101.SCH`, `EX-101.LAB`, …). Each document is streamed to internal storage under its original file name; the output gives its type, file name, description, SEC URL and storage `uri`.
+
+### xbrl.CompanyFacts
+
+Reads every value a company has reported in XBRL (SEC's company facts), given its `ticker` or `cik`, as flat rows: `taxonomy`, `concept`, `unit`, `value` (exact, as reported), period `start` (empty for point-in-time values such as shares outstanding) and `end`, `fiscalYear` and `fiscalPeriod`, and the `form`, `filed` date and `accessionNumber` of the filing that reported it, plus SEC's calendar `frame` when set. The same value appears once per filing that reported it; use `frame` to keep one value per calendar period.
+
+Filters are applied while the response is read: `taxonomies` (such as `us-gaap` or `dei`), `concepts` (such as `Revenues` or `NetIncomeLoss`), `units` (such as `USD` or `USD/shares`), `forms` (such as `10-K`) and an inclusive `startDate` / `endDate` on the period end date.
+
+**Size:** a large company's facts run to tens of megabytes and hundreds of thousands of values. The response is streamed to disk and read value by value, so the task never holds it in memory, and `fetchType` defaults to `STORE`, which writes the rows to an ION file in internal storage as they are read. Use `STORE` for unfiltered or broad requests. `FETCH` returns the rows in the task output and is meant for filtered requests: it fails, rather than truncating, when more than 10,000 values match.
