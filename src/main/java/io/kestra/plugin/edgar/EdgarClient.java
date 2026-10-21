@@ -29,7 +29,7 @@ public final class EdgarClient implements AutoCloseable {
     public static final String DEFAULT_BASE_URL = "https://www.sec.gov";
     public static final String DEFAULT_DATA_BASE_URL = "https://data.sec.gov";
     public static final int DEFAULT_MAX_REQUESTS_PER_SECOND = 5;
-    static final int MAX_REQUESTS_PER_SECOND = 10;
+    public static final int MAX_REQUESTS_PER_SECOND = 10;
 
     private static final Pattern EMAIL = Pattern.compile("[^\\s@]+@[^\\s@]+\\.[^\\s@]+");
     private static final List<Integer> RETRIED_STATUS_CODES = List.of(429, 503);
@@ -48,7 +48,7 @@ public final class EdgarClient implements AutoCloseable {
         this.nextRequestAt = System.nanoTime();
     }
 
-    static EdgarClient of(RunContext runContext, String userAgent, int maxRequestsPerSecond) {
+    public static EdgarClient of(RunContext runContext, String userAgent, int maxRequestsPerSecond) {
         if (userAgent == null || userAgent.isBlank() || !EMAIL.matcher(userAgent).find() || EMAIL.matcher(userAgent.trim()).matches()) {
             throw new IllegalArgumentException(
                 "`userAgent` must give a name and a contact email, for example `Example Co admin@example.com`: SEC rejects automated requests without them."
@@ -80,7 +80,7 @@ public final class EdgarClient implements AutoCloseable {
         }
     }
 
-    static URI baseUri(String url, String property) {
+    public static URI baseUri(String url, String property) {
         try {
             var uri = URI.create(url.endsWith("/") ? url.substring(0, url.length() - 1) : url);
             if (uri.getScheme() == null || uri.getHost() == null) {

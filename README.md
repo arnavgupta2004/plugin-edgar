@@ -51,6 +51,8 @@
   - `filings.List` lists a company's filings, filtered by form type and filing date.
   - `filings.Download` downloads a filing's primary document and its exhibits, chosen by declared type such as `EX-99.1`.
   - `xbrl.CompanyFacts` reads a company's XBRL financial data as flat rows, filtered by taxonomy, concept, unit, form and period; large results go to internal storage.
+- Trigger:
+  - `filings.Trigger` starts a flow when watched companies file new filings of the given forms.
 - Shared behaviour: a required `userAgent` (name and contact email, as SEC requires), requests spaced to stay under `maxRequestsPerSecond` (default 5, at most 10), and retries on HTTP 429 and 503.
 
 ## SEC requirements

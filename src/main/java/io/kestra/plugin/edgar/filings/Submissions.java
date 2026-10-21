@@ -62,6 +62,23 @@ final class Submissions {
         return filings;
     }
 
+    /**
+     * Returns the company's recent filings of the given forms (at least the last year, or 1,000 filings), without
+     * reading older pages; empty when SEC has no filings for the CIK.
+     */
+    static List<Filing> recent(EdgarClient client, URI dataBaseUri, URI baseUri, String cik, Set<String> forms) throws Exception {
+        var company = client.findJson(URI.create(dataBaseUri + "/submissions/CIK" + cik + ".json"), CompanyFile.class);
+        if (company.isEmpty()) {
+            throw new IllegalArgumentException("SEC has no filings for CIK %s. Check the CIK.".formatted(cik));
+        }
+        if (company.get().filings() == null || company.get().filings().recent() == null) {
+            throw new IllegalStateException("SEC's submissions for CIK %s have an unexpected format: `filings.recent` is missing.".formatted(cik));
+        }
+        var filings = new ArrayList<Filing>();
+        collect(company.get().filings().recent(), cik, baseUri, new Query(forms, null, null, Integer.MAX_VALUE), filings);
+        return filings;
+    }
+
     private static void collect(Columns columns, String cik, URI baseUri, Query query, List<Filing> collected) {
         if (columns.accessionNumber() == null || columns.form() == null || columns.filingDate() == null) {
             throw new IllegalStateException("SEC's submissions for CIK %s have an unexpected format: a filing column is missing.".formatted(cik));

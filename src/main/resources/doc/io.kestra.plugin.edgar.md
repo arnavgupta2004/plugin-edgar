@@ -31,3 +31,16 @@ Reads every value a company has reported in XBRL (SEC's company facts), given it
 Filters are applied while the response is read: `taxonomies` (such as `us-gaap` or `dei`), `concepts` (such as `Revenues` or `NetIncomeLoss`), `units` (such as `USD` or `USD/shares`), `forms` (such as `10-K`) and an inclusive `startDate` / `endDate` on the period end date.
 
 **Size:** a large company's facts run to tens of megabytes and hundreds of thousands of values. The response is streamed to disk and read value by value, so the task never holds it in memory, and `fetchType` defaults to `STORE`, which writes the rows to an ION file in internal storage as they are read. Use `STORE` for unfiltered or broad requests. `FETCH` returns the rows in the task output and is meant for filtered requests: it fails, rather than truncating, when more than 10,000 values match.
+
+## Triggers
+
+### filings.Trigger
+
+Polls SEC EDGAR and starts **one execution per poll** when the watched companies (`tickers`, `ciks` or both) have new filings of the watched `forms`. `{{ trigger.filings }}` lists them, oldest first, in the same shape as `filings.List` rows, and `{{ trigger.count }}` gives their number.
+
+- **Requests:** each poll makes one request per company, plus one for SEC's ticker file when `tickers` is set, and reads only each company's recent filings. The default `interval` of 10 minutes keeps that far under SEC's limit; the minimum is 1 minute.
+- **First poll:** records the filings already on SEC and fires nothing. With `lookback` (for example `P7D`), it fires once for the filings accepted within that period. `lookback` is used only while no state is saved.
+- **Each filing fires once:** filings are tracked by accession number within a window of acceptance times, so filings accepted in the same second are neither skipped nor repeated.
+- **Late publishing:** a filing that appears on SEC after a later one, with an earlier acceptance time, still fires, as long as it was accepted within the last 7 days. A filing that appears more than 7 days after its acceptance time is not fired.
+- **Failed polls:** if reading a company fails (an SEC error, a timeout, a rate limit after retries), nothing is recorded for it, a warning is logged, and its filings are checked again on the next poll. Other companies in the same trigger are not affected. A ticker that SEC doesn't list is logged as a warning on each poll and not watched.
+- **State:** kept per company in the flow's namespace KV store, under a key starting with `edgar_filings_`. Deleting it makes the next poll behave like the first one.

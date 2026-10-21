@@ -1,8 +1,8 @@
 package io.kestra.plugin.edgar;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -26,28 +26,32 @@ public final class CompanyTickers {
      * @throws IllegalArgumentException naming every ticker SEC doesn't list
      */
     public static List<Company> resolve(EdgarClient client, URI baseUri, List<String> tickers) throws Exception {
-        var file = client.getJson(URI.create(baseUri + PATH), TickerFile.class);
-        var byTicker = index(file);
-
-        var companies = new ArrayList<Company>();
-        var unknown = new ArrayList<String>();
-        for (var ticker : tickers) {
-            var normalized = ticker.trim().toUpperCase(Locale.ROOT);
-            var company = byTicker.containsKey(normalized) ? byTicker.get(normalized) : byTicker.get(normalized.replace('.', '-'));
-            if (company == null) {
-                unknown.add(ticker.trim());
-            } else {
-                companies.add(company);
-            }
-        }
-
+        var found = lookup(client, baseUri, tickers);
+        var unknown = tickers.stream().map(String::trim).filter(ticker -> !found.containsKey(ticker)).toList();
         if (!unknown.isEmpty()) {
             throw new IllegalArgumentException(
                 "SEC lists no company with the ticker %s. Check the symbol; EDGAR writes class shares with a hyphen, for example `BRK-B`."
                     .formatted(String.join(", ", unknown))
             );
         }
-        return companies;
+        return tickers.stream().map(ticker -> found.get(ticker.trim())).toList();
+    }
+
+    /**
+     * Returns the company of each ticker SEC lists, keyed by the ticker as given (trimmed), in the order given; unknown
+     * tickers are left out.
+     */
+    public static Map<String, Company> lookup(EdgarClient client, URI baseUri, List<String> tickers) throws Exception {
+        var byTicker = index(client.getJson(URI.create(baseUri + PATH), TickerFile.class));
+        var found = new LinkedHashMap<String, Company>();
+        for (var ticker : tickers) {
+            var normalized = ticker.trim().toUpperCase(Locale.ROOT);
+            var company = byTicker.containsKey(normalized) ? byTicker.get(normalized) : byTicker.get(normalized.replace('.', '-'));
+            if (company != null) {
+                found.putIfAbsent(ticker.trim(), company);
+            }
+        }
+        return found;
     }
 
     /**
