@@ -2,14 +2,14 @@
 
 ## What
 
-- Provides plugin components under `io.kestra.plugin.edgar`.
-- Includes classes such as `Example`, `Trigger`.
+- Provides plugin components under `io.kestra.plugin.edgar`, for SEC EDGAR (the public database of US company filings).
+- Includes classes such as `company.Lookup`, `AbstractEdgarTask`, `EdgarClient`.
 
 ## Why
 
-- What user problem does this solve? Teams need a concrete starting point for building and validating new Kestra plugins without recreating the same project scaffolding from scratch.
-- Why would a team adopt this plugin in a workflow? It gives plugin authors a ready-made reference repo they can adapt alongside their own build, test, and publishing workflow.
-- What operational/business outcome does it enable? It shortens plugin delivery time, reduces setup mistakes, and makes internal or partner plugin development more repeatable.
+- What user problem does this solve? Teams that use SEC EDGAR reimplement the same plumbing in every script: the User-Agent SEC requires, its rate limit, ticker-to-CIK lookups and EDGAR's response formats.
+- Why would a team adopt this plugin in a workflow? It keeps EDGAR steps in the same Kestra flow as the rest of the pipeline, with typed outputs and Kestra's retries.
+- What operational/business outcome does it enable? Filing monitors and financial datasets become short flows instead of custom scripts.
 
 ## How
 
@@ -17,15 +17,14 @@
 
 Single-module plugin. Source packages under `io.kestra.plugin`:
 
-- `edgar`
+- `edgar`: the shared base task (`AbstractEdgarTask`), the per-run HTTP client (`EdgarClient`) and the ticker resolver (`CompanyTickers`). No tasks live in the root package.
+- `edgar.company`: company tasks.
 
-Infrastructure dependencies (Docker Compose services):
-
-- `app`
+The plugin calls SEC's public APIs only; tests use WireMock with fixtures in `src/test/resources/fixtures`, so they need no network.
 
 ### Key Plugin Classes
 
-- `io.kestra.plugin.edgar.Example`
+- `io.kestra.plugin.edgar.company.Lookup`
 
 ### Project Structure
 
@@ -40,6 +39,8 @@ plugin-edgar/
 ## Local rules
 
 - Base the wording on the implemented packages and classes, not on template README text.
+- Keep tasks stateless: create `EdgarClient` inside `run()` and close it there; the rate limit is per run.
+- Never put a real contact in code, tests or fixtures; use a placeholder User-Agent such as `Example Co admin@example.com`.
 
 ## References
 

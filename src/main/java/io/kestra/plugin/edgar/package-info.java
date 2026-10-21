@@ -1,6 +1,6 @@
 @PluginSubGroup(
-    title = "EDGAR",
-    description = "SEC EDGAR plugin for Kestra",
+    title = "SEC EDGAR",
+    description = "Tasks that read company data and filings from SEC EDGAR, the public database of US company filings.",
     categories = PluginSubGroup.PluginCategory.DATA
 )
 package io.kestra.plugin.edgar;
